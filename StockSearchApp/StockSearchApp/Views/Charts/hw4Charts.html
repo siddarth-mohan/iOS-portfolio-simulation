@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <script src="https://code.highcharts.com/stock/highstock.js"></script>
+    <script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/stock/modules/export-data.js"></script>
+    <script src="https://code.highcharts.com/stock/modules/accessibility.js"></script>
+    <script src="https://code.highcharts.com/stock/modules/drag-panes.js"></script>
+    <script src="https://code.highcharts.com/stock/indicators/indicators.js"></script>
+    <script src="https://code.highcharts.com/stock/indicators/volume-by-price.js"></script>
+  </head>
+  <body>
+    <div id="container"></div>
+    <script>
+        
+        function historicalChart(historicData, ticker){
+            historicData = JSON.parse(historicData)
+            var OHLCDate = historicData.OHLCDate;
+            var volumeDate = historicData.volumeDate
+            Highcharts.stockChart("container",{
+                rangeSelector: {
+                    selected: 2
+                },
+        
+                title: {
+                    text: ticker + " Historical"
+                },
+        
+                subtitle: {
+                    text: 'With SMA and Volume by Price technical indicators'
+                },
+        
+                yAxis: [{
+                    startOnTick: false,
+                    endOnTick: false,
+                    labels: {
+                        align: 'right',
+                        x: -3
+                    },
+                    title: {
+                        text: 'OHLC'
+                    },
+                    height: '60%',
+                    lineWidth: 2,
+                    resize: {
+                        enabled: true
+                    }
+                }, {
+                    labels: {
+                        align: 'right',
+                        x: -3
+                    },
+                    title: {
+                        text: 'Volume'
+                    },
+                    top: '65%',
+                    height: '35%',
+                    offset: 0,
+                    lineWidth: 2
+                }],
+        
+                tooltip: {
+                    split: true
+                },
+        
+                plotOptions: {
+                    series: {
+                    }
+                },
+        
+                series: [{
+                    type: 'candlestick',
+                    name: ticker,
+                    id: ticker,
+                    zIndex: 2,
+                    data: OHLCDate
+                }, {
+                    type: 'column',
+                    name: 'Volume',
+                    id: 'volume',
+                    data: volumeDate,
+                    yAxis: 1
+                }, {
+                    type: 'vbp',
+                    linkedTo: ticker,
+                    params: {
+                        volumeSeriesID: 'volume'
+                    },
+                    dataLabels: {
+                        enabled: false
+                    },
+                    zoneLines: {
+                        enabled: false
+                    }
+                }, {
+                    type: 'sma',
+                    linkedTo: ticker,
+                    zIndex: 1,
+                    marker: {
+                        enabled: false
+                    }
+                }]
+            })
+        }
+        
+        function recomChart(recommTrends){
+            recommTrends = JSON.parse(recommTrends)
+            Highcharts.chart("container", {
+                chart: {
+                  type: 'column',
+                  backgroundColor: '#f8f8f8',
+              },
+                rules: [{
+              condition: {
+                maxWidth: 500
+            }}],
+              title: {
+                  text: 'Recommendation Trends',
+                  align: 'center'
+              },
+              xAxis: {
+                  categories: [recommTrends[0].period,recommTrends[1].period,recommTrends[2].period,recommTrends[3].period]
+              },
+              yAxis: {
+                  min: 0,
+                  title: {
+                      text: '#Analysis'
+                  },
+                  stackLabels: {
+                      enabled: true
+                  }
+              },
+              legend: {
+                  align: 'center',
+                  floating: false,
+                  backgroundColor: '#f8f8f8',
+                  borderColor: '#CCC',
+                  borderWidth: 1,
+                  shadow: false
+              },
+              tooltip: {
+                  headerFormat: '<b>{point.x}</b><br/>',
+                  pointFormat: '{series.name}: {point.y}<br/>Total: {point.stackTotal}'
+              },
+              plotOptions: {
+                  column: {
+                      stacking: 'normal',
+                      dataLabels: {
+                          enabled: true
+                      }
+                  }
+              },
+              series: [{
+                  name: 'Strong Buy',
+                data: [recommTrends[0].strongBuy,recommTrends[1].strongBuy,recommTrends[2].strongBuy,recommTrends[3].strongBuy],
+                  color : '#1a6334'
+              }, {
+                  name: 'Buy',
+                  data: [recommTrends[0].buy,recommTrends[1].buy,recommTrends[2].buy,recommTrends[3].buy],
+                  color : '#24af50'
+              }, {
+                  name: 'Hold',
+                  data: [recommTrends[0].hold,recommTrends[1].hold,recommTrends[2].hold,recommTrends[3].hold],
+                  color : '#b07e28'
+              },{
+                name: 'Sell',
+                data: [recommTrends[0].sell,recommTrends[1].sell,recommTrends[2].sell,recommTrends[3].sell],
+                color : '#f15053'
+              },{
+              name: 'Strong Sell',
+              data: [recommTrends[0].strongSell,recommTrends[1].strongSell,recommTrends[2].strongSell,recommTrends[3].strongSell],
+              color : '#752b2c'
+              }]
+            })
+        }
+        
+        function earningsChart(earnings){
+          earnings = JSON.parse(earnings)
+          var xaxis = [];
+          for(var i=0;i<4;i++){
+            var temp = "";
+            temp = earnings[i].period.slice(0,10) + '<br>' + earnings[i].surprise;
+            xaxis.push(temp);
+          }
+          Highcharts.chart("container", {
+                  chart: {
+                      type: 'spline',
+                      backgroundColor: '#f8f8f8',
+                  },
+                  title: {
+                      text: 'Historical EPS Surprises'
+                  },
+                  
+                  xAxis: {
+                      categories: xaxis,
+                      accessibility: {
+                          description: 'Months of the year'
+                      }
+                  },
+                  yAxis: {
+                      title: {
+                          text: 'Quatarly EPS'
+                      },
+                      labels: {
+                          format: '{value}'
+                      }
+                  },
+                  tooltip: {
+                      crosshairs: true,
+                      shared: true
+                  },
+                  plotOptions: {
+                      spline: {
+                          marker: {
+                              radius: 4,
+                              lineColor: '#666666',
+                              lineWidth: 1
+                          }
+                      }
+                  },
+                  series: [{
+                      name: 'Actual',
+                      marker: {
+                          symbol: 'circle'
+                      },
+                      data: [earnings[0].actual,earnings[1].actual,earnings[2].actual,earnings[3].actual]
+
+                  }, {
+                      name: 'Estimate',
+                      marker: {
+                          symbol: 'diamond'
+                      },
+                      data: [earnings[0].estimate,earnings[1].estimate,earnings[2].estimate,earnings[3].estimate]
+                  }]
+              })
+        }
+        
+    
+      function hourlyChart(chartHourlyData, ticker, color) {
+          chartHourlyData = JSON.parse(chartHourlyData)
+        var priceDate = chartHourlyData.results.map((obj) => {
+            return [obj.t, obj.c];
+        });
+        Highcharts.stockChart("container",{
+          chart: {
+            backgroundColor: "#f8f8f8",
+          },
+          title: {
+            text:
+              "<p style='color: grey;'>" +
+              ticker +
+              " Hourly Price Variation</p>",
+            useHTML: true,
+          },
+          navigator: {
+            enabled: false,
+          },
+          rangeSelector: {
+            enabled: false,
+          },
+          scrollbar: {
+            enabled: false,
+          },
+          yAxis: [
+            {
+              opposite: true,
+              className: "stock-title",
+              tickAmount: 8,
+            },
+          ],
+          series: [
+            {
+              type: "line",
+              name: ticker,
+              data: priceDate,
+              tooltip: {
+                valueDecimals: 2,
+              },
+              color: color,
+              pointInterval: 2 * 3600 * 1000,
+            },
+          ],
+        })
+      }
+
+    var fakeHourlyData = {"ticker":"AAPL","queryCount":1437,"resultsCount":32,"adjusted":true,"results":[{"v":13419,"vw":170.0548,"o":169.99,"c":170.06,"h":170.18,"l":169.9,"t":1712217600000,"n":400},{"v":4729,"vw":170.1538,"o":170.06,"c":170.19,"h":170.2,"l":170.06,"t":1712221200000,"n":82},{"v":10192,"vw":170.061,"o":170.05,"c":170.14,"h":170.14,"l":170,"t":1712224800000,"n":361},{"v":31859,"vw":170.2235,"o":170.2,"c":170.2,"h":170.31,"l":170.1,"t":1712228400000,"n":866},{"v":149611,"vw":170.4085,"o":170.19,"c":170.75,"h":170.79,"l":169.83,"t":1712232000000,"n":4661},{"v":6.01086e+06,"vw":170.5606,"o":170.75,"c":170.9799,"h":171.01,"l":170.04,"t":1712235600000,"n":65954},{"v":5.315542e+06,"vw":170.9449,"o":170.9792,"c":171.0182,"h":171.19,"l":170.71,"t":1712239200000,"n":125174},{"v":4.33193e+06,"vw":171.3102,"o":171.0175,"c":171.73,"h":171.765,"l":170.85,"t":1712242800000,"n":102872},{"v":3.967386e+06,"vw":171.6936,"o":171.73,"c":171.425,"h":171.92,"l":171.335,"t":1712246400000,"n":46609},{"v":3.71218e+06,"vw":171.3427,"o":171.42,"c":170.82,"h":171.61,"l":170.8,"t":1712250000000,"n":40242},{"v":8.649248e+06,"vw":169.9263,"o":170.82,"c":169.8,"h":170.8251,"l":169.2,"t":1712253600000,"n":96837},{"v":1.2058017e+07,"vw":169.2801,"o":169.79,"c":168.89,"h":169.93,"l":168.83,"t":1712257200000,"n":136787},{"v":1.704482e+06,"vw":168.8282,"o":168.86,"c":169.05,"h":169.12,"l":168.77,"t":1712260800000,"n":3788},{"v":105678,"vw":168.9479,"o":169.02,"c":169.1204,"h":169.22,"l":168.82,"t":1712264400000,"n":1326},{"v":70008,"vw":169.1545,"o":169.15,"c":169.1,"h":169.2886,"l":168.82,"t":1712268000000,"n":1213},{"v":64498,"vw":169.3059,"o":169.07,"c":169.22,"h":169.55,"l":169.02,"t":1712271600000,"n":1289},{"v":19112,"vw":169.2203,"o":169.2,"c":169.3,"h":169.35,"l":169.1,"t":1712304000000,"n":396},{"v":5758,"vw":169.3639,"o":169.36,"c":169.4,"h":169.4,"l":169.3,"t":1712307600000,"n":113},{"v":8556,"vw":169.3724,"o":169.44,"c":169.47,"h":169.47,"l":169.27,"t":1712311200000,"n":243},{"v":39897,"vw":169.6512,"o":169.48,"c":169.7,"h":169.94,"l":169.36,"t":1712314800000,"n":968},{"v":532245,"vw":169.3052,"o":169.4,"c":169.82,"h":170.1,"l":168.81,"t":1712318400000,"n":8233},{"v":5.637793e+06,"vw":169.335,"o":169.8,"c":169.54,"h":170.1,"l":168.95,"t":1712322000000,"n":65622},{"v":5.891353e+06,"vw":169.3879,"o":169.54,"c":169.65,"h":169.91,"l":169.045,"t":1712325600000,"n":136301},{"v":5.108709e+06,"vw":169.6985,"o":169.645,"c":170.21,"h":170.24,"l":169.2109,"t":1712329200000,"n":118643},{"v":3.675575e+06,"vw":170.1407,"o":170.21,"c":170.26,"h":170.39,"l":169.9301,"t":1712332800000,"n":42932},{"v":3.413894e+06,"vw":169.9719,"o":170.255,"c":169.62,"h":170.375,"l":169.51,"t":1712336400000,"n":41485},{"v":3.785689e+06,"vw":169.6365,"o":169.63,"c":169.59,"h":169.97,"l":169.35,"t":1712340000000,"n":45433},{"v":6.470775e+06,"vw":169.7414,"o":169.59,"c":169.6,"h":169.98,"l":169.5,"t":1712343600000,"n":74595},{"v":1.710734e+06,"vw":169.5795,"o":169.56,"c":169.56,"h":169.99,"l":169.47,"t":1712347200000,"n":1575},{"v":21320,"vw":169.6067,"o":169.56,"c":169.63,"h":169.7,"l":169.53,"t":1712350800000,"n":516},{"v":20866,"vw":169.6021,"o":169.62,"c":169.5,"h":169.68,"l":169.45,"t":1712354400000,"n":554},{"v":25007,"vw":169.4339,"o":169.5,"c":169.47,"h":169.56,"l":169.25,"t":1712358000000,"n":599}],"status":"OK","request_id":"743019f1cb1a65681b093aa80b2b560f","count":32}
+    </script>
+  </body>
+</html>
